@@ -6,6 +6,8 @@ defmodule ExStatusCheckWeb.PageLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    # locale and timezone are here
+    IO.inspect(get_connect_params(socket))
     {:ok, stream(socket, :pages, Pages.list_pages())}
   end
 

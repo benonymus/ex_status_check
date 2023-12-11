@@ -50,7 +50,9 @@ defmodule ExStatusCheck.MixProject do
       {:oban, "~> 2.16"},
       {:req, "~> 0.4.0"},
       {:time_zone_info, "~> 0.7"},
-      {:ecto_autoslug_field, "~> 3.1"}
+      {:ecto_autoslug_field, "~> 3.1"},
+      {:phoenix_ui, "~> 0.1.9"},
+      {:timex, "~> 3.7.11"}
     ]
   end
 

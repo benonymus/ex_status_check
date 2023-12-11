@@ -17,6 +17,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
   use Phoenix.Component
 
   alias Phoenix.LiveView.JS
+  import Phoenix.UI.Components.Tooltip
   import ExStatusCheckWeb.Gettext
 
   @doc """
@@ -387,6 +388,29 @@ defmodule ExStatusCheckWeb.CoreComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders a parallelogram shaped link with tooltip.
+  """
+  attr :percentage, :integer, required: true
+  attr :link, :string, default: nil
+  attr :date, :string
+
+  def parallelogram(assigns) do
+    ~H"""
+    <.tooltip content={"#{@date} - #{@percentage}%"} variant="simple" position="bottom">
+      <.link navigate={@link} class={if is_nil(@link), do: "pointer-events-none"}>
+        <div class={"w-10 h-14 skew-x-12 rounded-lg #{get_color(@percentage)}"} />
+      </.link>
+    </.tooltip>
+    """
+  end
+
+  defp get_color(v) when v > 99, do: "bg-purple-600"
+  defp get_color(v) when v > 70, do: "bg-green-500"
+  defp get_color(v) when v > 40, do: "bg-orange-400"
+  defp get_color(v) when v > 1, do: "bg-red-600"
+  defp get_color(_), do: "bg-black"
 
   @doc """
   Renders a label.

@@ -1,9 +1,14 @@
 <.header>
-  <%= @page.url %>
+  <%= @page.url <> "in the last " <> Integer.to_string(@num_of_days) <> " days" %>
 </.header>
 
-<.list>
-  <:item title="Url"><%= @page.url %></:item>
-</.list>
+<div :if={@connected?} class="flex justify-start">
+  <.parallelogram
+    :for={{date, v} <- @checks}
+    percentage={calculate_percentage(v)}
+    date={format_date_time(date, @timezone)}
+    link={~p"/pages/#{@page.slug}?datetime=#{date}"}
+  />
+</div>
 
 <.back navigate={~p"/"}>Back</.back>

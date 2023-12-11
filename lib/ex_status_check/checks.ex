@@ -40,6 +40,29 @@ defmodule ExStatusCheck.Checks do
     |> Repo.all()
   end
 
+  def get_status_for_date(id, datetime) do
+    start_of_day = datetime |> Timex.beginning_of_day() |> DateTime.to_string()
+    end_of_day = datetime |> Timex.end_of_day() |> DateTime.to_string()
+
+    {substr_length, padding} =
+      {13, ":00:00Z"}
+
+    Check
+    |> where(page_id: ^id)
+    |> where([c], c.inserted_at >= ^start_of_day and c.inserted_at <= ^end_of_day)
+    |> group_by([c], [fragment("substr(?, 1, ?)", c.inserted_at, ^substr_length), c.success])
+    |> select(
+      [c],
+      {fragment("substr(?, 1, ?)", c.inserted_at, ^substr_length), %{c.success => count(c.id)}}
+    )
+    |> Repo.all()
+    |> Enum.reduce(%{}, fn {k, v}, acc ->
+      Map.merge(acc, %{(k <> padding) => v}, fn _k, v1, v2 ->
+        Map.merge(v1, v2)
+      end)
+    end)
+  end
+
   def get_status_per(id, amount, interval) do
     datetime_string =
       DateTime.utc_now()
