@@ -84,10 +84,10 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     assign(socket, type: :day, datetime_string: nil, checks: checks, current_check: current_check)
   end
 
-  def build_next_path(type, slug, date) do
+  def build_next_path(type, slug, datetime) do
     type = next_type(type)
 
-    unless is_nil(type), do: ~p"/pages/#{slug}?datetime=#{date}&type=#{type}"
+    unless is_nil(type), do: ~p"/pages/#{slug}?datetime=#{datetime}&type=#{type}"
   end
 
   defp next_type(:day), do: :hour
@@ -106,6 +106,18 @@ defmodule ExStatusCheckWeb.PageLive.Show do
   defp datetime_formatter(:day), do: "{YYYY}-{0M}-{D}"
   defp datetime_formatter(:hour), do: "{YYYY}-{0M}-{D} {h24}:{m}"
   defp datetime_formatter(:minute), do: "{YYYY}-{0M}-{D} {h24}:{m}"
+
+  def back_button_text(:day), do: "Home"
+  def back_button_text(:hour), do: "Day"
+  def back_button_text(:minute), do: "Hour"
+
+  def back_button_path(:day, _, _), do: ~p"/"
+
+  def back_button_path(:hour, slug, _),
+    do: ~p"/pages/#{slug}"
+
+  def back_button_path(:minute, slug, datetime),
+    do: ~p"/pages/#{slug}?datetime=#{datetime}&type=#{:hour}"
 
   def calculate_percentage(%{true: 0, false: 0}), do: 0
 

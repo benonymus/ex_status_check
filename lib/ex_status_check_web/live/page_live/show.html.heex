@@ -22,4 +22,6 @@
   />
 </div>
 
-<.back navigate={~p"/"}>Back</.back>
+<.back navigate={back_button_path(@type, @page.slug, @datetime_string)}>
+  <%= back_button_text(@type) %>
+</.back>
