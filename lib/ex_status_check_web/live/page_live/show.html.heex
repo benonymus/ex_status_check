@@ -2,6 +2,10 @@
   <%= @page.url %>
 </.header>
 
+<.back navigate={back_button_path(@type, @page.slug, @datetime_string)}>
+  <%= back_button_text(@type) %>
+</.back>
+
 <div :if={@connected?} class="flex flex-wrap justify-start">
   <.parallelogram
     :for={{date, v} <- @checks}
@@ -21,7 +25,3 @@
     path={build_next_path(@type, @page.slug, @current_check.date)}
   />
 </div>
-
-<.back navigate={back_button_path(@type, @page.slug, @datetime_string)}>
-  <%= back_button_text(@type) %>
-</.back>

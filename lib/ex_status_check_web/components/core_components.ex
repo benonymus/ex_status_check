@@ -407,7 +407,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
       position="bottom"
     >
       <.link patch={@path} class={if is_nil(@path), do: "pointer-events-none"}>
-        <div class={"w-8 h-12 skew-x-6 rounded-lg #{get_color(@percentage)} #{live_css(@live)}"} />
+        <div class={"m-px w-8 h-12 skew-x-6 rounded-lg #{get_color(@percentage)} #{live_css(@live)}"} />
       </.link>
     </.tooltip>
     """
@@ -592,12 +592,12 @@ defmodule ExStatusCheckWeb.CoreComponents do
 
   def back(assigns) do
     ~H"""
-    <div class="mt-16">
+    <div class="my-4">
       <.link
         navigate={@navigate}
         class="text-sm font-semibold leading-6 text-zinc-900 hover:text-zinc-700"
       >
-        <.icon name="hero-arrow-left-solid" class="h-3 w-3" />
+        <.icon name="hero-arrow-up-solid" class="h-3 w-3" />
         <%= render_slot(@inner_block) %>
       </.link>
     </div>

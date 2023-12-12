@@ -40,13 +40,16 @@ defmodule ExStatusCheckWeb.PageLive.Show do
 
   defp assign_extras(socket, %{"datetime" => datetime_string, "type" => "minute"}) do
     {:ok, datetime, _} = DateTime.from_iso8601(datetime_string)
+
     now = DateTime.utc_now()
 
+    skip_last = Date.compare(datetime, now) == :eq and datetime.hour == now.hour
+
     checks =
-      Checks.get_status_for(socket.assigns.page.id, datetime, :minute)
+      Checks.get_status_for(socket.assigns.page.id, datetime, skip_last, :minute)
 
     current_check =
-      if Date.compare(datetime, now) == :eq and datetime.hour == now.hour,
+      if skip_last,
         do: Checks.get_status_for_current_interval(socket.assigns.page.id, :minute)
 
     assign(socket,
@@ -60,11 +63,13 @@ defmodule ExStatusCheckWeb.PageLive.Show do
   defp assign_extras(socket, %{"datetime" => datetime_string, "type" => "hour"}) do
     {:ok, datetime, _} = DateTime.from_iso8601(datetime_string)
 
+    skip_last = Date.compare(datetime, Date.utc_today()) == :eq
+
     checks =
-      Checks.get_status_for(socket.assigns.page.id, datetime, :hour)
+      Checks.get_status_for(socket.assigns.page.id, datetime, skip_last, :hour)
 
     current_check =
-      if Date.compare(datetime, Date.utc_today()) == :eq,
+      if skip_last,
         do: Checks.get_status_for_current_interval(socket.assigns.page.id, :hour)
 
     assign(socket,
@@ -77,7 +82,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
 
   defp assign_extras(socket, _) do
     checks =
-      Checks.get_status_for(socket.assigns.page.id, DateTime.utc_now(), :day, -30)
+      Checks.get_status_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -30)
 
     current_check = Checks.get_status_for_current_interval(socket.assigns.page.id, :day)
 

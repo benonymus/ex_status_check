@@ -51,11 +51,11 @@ defmodule ExStatusCheck.Checks do
   def get_status_for(
         id,
         datetime,
+        skip_last,
         interval,
         amount \\ nil
       ) do
     {substr_length, padding} = substr_length_and_padding(interval)
-
     # this way is faster than subqueries
     Check
     |> where(page_id: ^id)
@@ -86,7 +86,7 @@ defmodule ExStatusCheck.Checks do
       end,
       {:desc, DateTime}
     )
-    |> tl()
+    |> then(fn result -> if skip_last, do: tl(result), else: result end)
     |> Enum.reverse()
   end
 
