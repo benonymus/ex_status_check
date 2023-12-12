@@ -1,13 +1,24 @@
 <.header>
-  <%= @page.url <> "in the last " <> Integer.to_string(@num_of_days) <> " days" %>
+  <%= @page.url %>
 </.header>
 
-<div :if={@connected?} class="flex justify-start">
+<div :if={@connected?} class="flex flex-wrap justify-start">
   <.parallelogram
     :for={{date, v} <- @checks}
     percentage={calculate_percentage(v)}
-    date={format_date_time(date, @timezone)}
-    link={~p"/pages/#{@page.slug}?datetime=#{date}"}
+    success_count={Map.get(v, true, 0)}
+    fail_count={Map.get(v, false, 0)}
+    date={format_date_time(date, @timezone, @type)}
+    path={build_next_path(@type, @page.slug, date)}
+  />
+  <.parallelogram
+    :if={not is_nil(@current_check)}
+    live={true}
+    percentage={calculate_percentage(@current_check.result)}
+    success_count={Map.get(@current_check.result, true, 0)}
+    fail_count={Map.get(@current_check.result, false, 0)}
+    date={"live - #{format_date_time(@current_check.date, @timezone, @type)}"}
+    path={build_next_path(@type, @page.slug, @current_check.date)}
   />
 </div>
 

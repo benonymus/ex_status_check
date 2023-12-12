@@ -393,24 +393,34 @@ defmodule ExStatusCheckWeb.CoreComponents do
   Renders a parallelogram shaped link with tooltip.
   """
   attr :percentage, :integer, required: true
-  attr :link, :string, default: nil
+  attr :success_count, :integer, required: true
+  attr :fail_count, :integer, required: true
+  attr :path, :string, default: nil
   attr :date, :string
+  attr :live, :boolean, default: false
 
   def parallelogram(assigns) do
     ~H"""
-    <.tooltip content={"#{@date} - #{@percentage}%"} variant="simple" position="bottom">
-      <.link navigate={@link} class={if is_nil(@link), do: "pointer-events-none"}>
-        <div class={"w-10 h-14 skew-x-12 rounded-lg #{get_color(@percentage)}"} />
+    <.tooltip
+      content={"#{@date} - #{@success_count}/#{@fail_count} - #{@percentage}%"}
+      variant="simple"
+      position="bottom"
+    >
+      <.link patch={@path} class={if is_nil(@path), do: "pointer-events-none"}>
+        <div class={"w-8 h-12 skew-x-6 rounded-lg #{get_color(@percentage)} #{live_css(@live)}"} />
       </.link>
     </.tooltip>
     """
   end
 
-  defp get_color(v) when v > 99, do: "bg-purple-600"
+  defp get_color(v) when v == 100, do: "bg-purple-600"
   defp get_color(v) when v > 70, do: "bg-green-500"
   defp get_color(v) when v > 40, do: "bg-orange-400"
   defp get_color(v) when v > 1, do: "bg-red-600"
   defp get_color(_), do: "bg-black"
+
+  defp live_css(true), do: "outline outline-offset-0 outline-yellow-400 "
+  defp live_css(false), do: ""
 
   @doc """
   Renders a label.

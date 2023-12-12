@@ -101,4 +101,7 @@ defmodule ExStatusCheck.Pages do
   def change_page(%Page{} = page, attrs \\ %{}) do
     Page.changeset(page, attrs)
   end
+
+  # helper
+  def topic_name(page), do: "page:#{page.id}"
 end

@@ -26,74 +26,114 @@ defmodule ExStatusCheck.Checks do
   end
 
   # helpers
-  def get_status_for_last(id, amount, interval) do
+  def get_status_for_current_interval(id, interval) do
+    datetime = DateTime.utc_now()
+
     datetime_string =
-      DateTime.utc_now()
-      |> DateTime.add(amount, interval)
-      |> DateTime.to_string()
-
-    Check
-    |> where(page_id: ^id)
-    |> where([c], c.inserted_at > ^datetime_string)
-    |> group_by([c], c.success)
-    |> select([c], {c.success, count(c.id)})
-    |> Repo.all()
-  end
-
-  def get_status_for_date(id, datetime) do
-    start_of_day = datetime |> Timex.beginning_of_day() |> DateTime.to_string()
-    end_of_day = datetime |> Timex.end_of_day() |> DateTime.to_string()
-
-    {substr_length, padding} =
-      {13, ":00:00Z"}
-
-    Check
-    |> where(page_id: ^id)
-    |> where([c], c.inserted_at >= ^start_of_day and c.inserted_at <= ^end_of_day)
-    |> group_by([c], [fragment("substr(?, 1, ?)", c.inserted_at, ^substr_length), c.success])
-    |> select(
-      [c],
-      {fragment("substr(?, 1, ?)", c.inserted_at, ^substr_length), %{c.success => count(c.id)}}
-    )
-    |> Repo.all()
-    |> Enum.reduce(%{}, fn {k, v}, acc ->
-      Map.merge(acc, %{(k <> padding) => v}, fn _k, v1, v2 ->
-        Map.merge(v1, v2)
-      end)
-    end)
-  end
-
-  def get_status_per(id, amount, interval) do
-    datetime_string =
-      DateTime.utc_now()
-      |> DateTime.add(amount, interval)
-      |> DateTime.to_string()
-
-    {substr_length, padding} =
       case interval do
-        :day ->
-          {10, "T00:00:00Z"}
-
-        :hour ->
-          {13, ":00:00Z"}
-
-        :minute ->
-          {16, ":00Z"}
+        :day -> start(:hour, datetime)
+        :hour -> start(:minute, datetime)
+        :minute -> start(:second, datetime)
       end
 
+    result =
+      Check
+      |> where(page_id: ^id)
+      |> where([c], c.inserted_at > ^datetime_string)
+      |> group_by([c], c.success)
+      |> select([c], {c.success, count(c.id)})
+      |> Repo.all()
+      |> Map.new()
+
+    %{date: datetime_string, result: result}
+  end
+
+  def get_status_for(
+        id,
+        datetime,
+        interval,
+        amount \\ nil
+      ) do
+    {substr_length, padding} = substr_length_and_padding(interval)
+
+    # this way is faster than subqueries
     Check
     |> where(page_id: ^id)
-    |> where([c], c.inserted_at > ^datetime_string)
+    |> where(
+      [c],
+      c.inserted_at >= ^start(interval, datetime, amount) and
+        c.inserted_at <= ^finish(interval, datetime)
+    )
     |> group_by([c], [fragment("substr(?, 1, ?)", c.inserted_at, ^substr_length), c.success])
     |> select(
       [c],
-      {fragment("substr(?, 1, ?)", c.inserted_at, ^substr_length), %{c.success => count(c.id)}}
+      %{
+        fragment("concat(substr(?, 1, ?), ?)", c.inserted_at, ^substr_length, ^padding) => %{
+          c.success => count(c.id)
+        }
+      }
     )
     |> Repo.all()
-    |> Enum.reduce(%{}, fn {k, v}, acc ->
-      Map.merge(acc, %{(k <> padding) => v}, fn _k, v1, v2 ->
+    |> Enum.reduce(%{}, fn map, acc ->
+      Map.merge(acc, map, fn _k, v1, v2 ->
         Map.merge(v1, v2)
       end)
     end)
+    |> Enum.sort_by(
+      fn {k, _} ->
+        {:ok, datetime, _} = DateTime.from_iso8601(k)
+        datetime
+      end,
+      {:desc, DateTime}
+    )
+    |> tl()
+    |> Enum.reverse()
+  end
+
+  defp substr_length_and_padding(:day), do: {10, "T00:00:00Z"}
+
+  defp substr_length_and_padding(:hour), do: {13, ":00:00Z"}
+
+  defp substr_length_and_padding(:minute), do: {16, ":00Z"}
+
+  defp start(interval, datetime, amount \\ nil)
+
+  defp start(:day, datetime, amount) do
+    datetime
+    |> DateTime.add(amount, :day)
+    |> DateTime.to_string()
+  end
+
+  defp start(:hour, datetime, _), do: datetime |> Timex.beginning_of_day() |> DateTime.to_string()
+
+  defp start(:minute, datetime, _) do
+    time_start = Timex.Time.new!(datetime.hour, 0, 0)
+
+    datetime
+    |> DateTime.to_date()
+    |> Timex.DateTime.new!(time_start)
+    |> DateTime.to_string()
+  end
+
+  defp start(:second, datetime, _) do
+    time_start = Timex.Time.new!(datetime.hour, datetime.minute, 0)
+
+    datetime
+    |> DateTime.to_date()
+    |> Timex.DateTime.new!(time_start)
+    |> DateTime.to_string()
+  end
+
+  defp finish(:day, datetime), do: DateTime.to_string(datetime)
+
+  defp finish(:hour, datetime), do: datetime |> Timex.end_of_day() |> DateTime.to_string()
+
+  defp finish(:minute, datetime) do
+    time_end = Timex.Time.new!(datetime.hour, 59, 59)
+
+    datetime
+    |> DateTime.to_date()
+    |> Timex.DateTime.new!(time_end)
+    |> DateTime.to_string()
   end
 end

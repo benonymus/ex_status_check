@@ -12,5 +12,6 @@ defmodule ExStatusCheck.Repo.Migrations.CreateChecks do
 
     create index("checks", [:page_id])
     create index("checks", [:success])
+    create index("checks", [:inserted_at])
   end
 end
