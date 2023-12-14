@@ -4,7 +4,7 @@ defmodule ExStatusCheck.Workers.Check do
     max_attempts: 3,
     unique: [period: 60, states: [:available, :scheduled]]
 
-  alias ExStatusCheck.Pages
+  alias ExStatusCheck.{Checks, Pages}
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"page_id" => page_id} = args}) do
@@ -17,7 +17,7 @@ defmodule ExStatusCheck.Workers.Check do
          {:ok, %Req.Response{status: status}} =
            Req.get(url, retry: false, connect_options: [timeout: 5000]),
          {:ok, _} <-
-           ExStatusCheck.Checks.create_check(%{page_id: page_id, success: status == 200}) do
+           Checks.create_check(%{page_id: page_id, success: status == 200}) do
       Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, Pages.topic_name(page), :new_check)
       :ok
     else

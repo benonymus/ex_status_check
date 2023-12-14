@@ -22,7 +22,8 @@ config :ex_status_check, Oban,
       crontab: [
         {"0 0 * * *", ExStatusCheck.Workers.ClearCache, args: %{interval: :day}},
         {"0 * * * *", ExStatusCheck.Workers.ClearCache, args: %{interval: :hour}},
-        {"* * * * *", ExStatusCheck.Workers.ClearCache, args: %{interval: :minute}}
+        {"* * * * *", ExStatusCheck.Workers.ClearCache, args: %{interval: :minute}},
+        {"0 0 * * *", ExStatusCheck.Workers.ClearChecks, args: %{days_ago: 30}}
       ]
     }
   ]

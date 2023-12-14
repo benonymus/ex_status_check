@@ -82,7 +82,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
 
   defp assign_extras(socket, _) do
     checks =
-      Checks.get_status_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -30)
+      Checks.get_status_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -29)
 
     current_check = Checks.get_status_for_current_interval(socket.assigns.page.id, :day)
 
