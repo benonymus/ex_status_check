@@ -9,6 +9,7 @@ defmodule ExStatusCheck.Application do
       ExStatusCheck.Repo,
       {Ecto.Migrator,
        repos: Application.fetch_env!(:ex_status_check, :ecto_repos), skip: skip_migrations?()},
+      ExStatusCheck.Cache,
       {Phoenix.PubSub, name: ExStatusCheck.PubSub},
       {Oban, Application.fetch_env!(:ex_status_check, Oban)},
       ExStatusCheckWeb.Endpoint

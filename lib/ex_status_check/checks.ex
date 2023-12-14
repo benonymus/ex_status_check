@@ -2,9 +2,10 @@ defmodule ExStatusCheck.Checks do
   @moduledoc """
   The Checks context.
   """
+  use Nebulex.Caching
 
   import Ecto.Query, warn: false
-  alias ExStatusCheck.Repo
+  alias ExStatusCheck.{Cache, Repo}
   alias ExStatusCheck.Checks.Check
 
   @doc """
@@ -19,6 +20,10 @@ defmodule ExStatusCheck.Checks do
       {:error, %Ecto.Changeset{}}
 
   """
+  @decorate cache_evict(
+              cache: Cache,
+              keys: [{attrs.page_id, :day}, {attrs.page_id, :hour}, {attrs.page_id, :minute}]
+            )
   def create_check(attrs \\ %{}) do
     %Check{}
     |> Check.changeset(attrs)
@@ -26,6 +31,11 @@ defmodule ExStatusCheck.Checks do
   end
 
   # helpers
+  @decorate cacheable(
+              cache: Cache,
+              key: {id, interval},
+              opts: [ttl: :timer.seconds(30)]
+            )
   def get_status_for_current_interval(id, interval) do
     datetime = DateTime.utc_now()
 
@@ -48,6 +58,11 @@ defmodule ExStatusCheck.Checks do
     %{date: datetime_string, result: result}
   end
 
+  @decorate cacheable(
+              cache: Cache,
+              key: cache_key(id, interval, datetime),
+              opts: [ttl: :timer.hours(12)]
+            )
   def get_status_for(
         id,
         datetime,
@@ -89,6 +104,14 @@ defmodule ExStatusCheck.Checks do
     |> then(fn result -> if skip_last, do: tl(result), else: result end)
     |> Enum.reverse()
   end
+
+  defp cache_key(id, :day = interval, _datetime),
+    do: {id, interval, nil, nil}
+
+  defp cache_key(id, interval, datetime),
+    do:
+      {id, interval, datetime |> DateTime.to_date() |> Date.to_string(),
+       start(interval, datetime)}
 
   defp substr_length_and_padding(:day), do: {10, "T00:00:00Z"}
 

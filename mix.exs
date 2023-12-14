@@ -51,7 +51,10 @@ defmodule ExStatusCheck.MixProject do
       {:req, "~> 0.4.0"},
       {:ecto_autoslug_field, "~> 3.1"},
       {:phoenix_ui, "~> 0.1.9"},
-      {:timex, "~> 3.7.11"}
+      {:timex, "~> 3.7.11"},
+      {:nebulex, "~> 2.5"},
+      {:decorator, "~> 1.4"},
+      {:ex2ms, "~> 1.0"}
     ]
   end
 
