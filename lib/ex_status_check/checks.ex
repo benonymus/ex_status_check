@@ -101,7 +101,9 @@ defmodule ExStatusCheck.Checks do
       end,
       {:desc, DateTime}
     )
-    |> then(fn result -> if skip_last, do: tl(result), else: result end)
+    |> then(fn result ->
+      if length(result) > 0 and skip_last, do: tl(result), else: result
+    end)
     |> Enum.reverse()
   end
 

@@ -2,10 +2,11 @@ defmodule ExStatusCheck.Pages do
   @moduledoc """
   The Pages context.
   """
+  use Nebulex.Caching
 
   import Ecto.Query, warn: false
   alias Ecto.Multi
-  alias ExStatusCheck.Repo
+  alias ExStatusCheck.{Cache, Repo}
   alias ExStatusCheck.Pages.Page
 
   @doc """
@@ -17,8 +18,17 @@ defmodule ExStatusCheck.Pages do
       [%Page{}, ...]
 
   """
+  @decorate cacheable(
+              cache: Cache,
+              key: :pages,
+              opts: [ttl: :timer.hours(12)]
+            )
   def list_pages do
     Repo.all(Page)
+  end
+
+  def list_filtered_pages(filter) do
+    Enum.filter(list_pages(), fn %Page{url: url} -> url =~ filter end)
   end
 
   @doc """
@@ -39,6 +49,10 @@ defmodule ExStatusCheck.Pages do
       {:error, %Ecto.Changeset{}}
 
   """
+  @decorate cache_evict(
+              cache: Cache,
+              key: :pages
+            )
   def create_page(attrs \\ %{}) do
     Multi.new()
     |> Multi.insert(
@@ -85,6 +99,10 @@ defmodule ExStatusCheck.Pages do
       {:error, %Ecto.Changeset{}}
 
   """
+  @decorate cache_evict(
+              cache: Cache,
+              key: :pages
+            )
   def delete_page(%Page{} = page) do
     Repo.delete(page)
   end

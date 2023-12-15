@@ -202,7 +202,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-10 space-y-8 bg-white">
+      <div class="bg-white flex justify-between items-start">
         <%= render_slot(@inner_block, f) %>
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
           <%= render_slot(action, f) %>
@@ -369,7 +369,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div phx-feedback-for={@name}>
+    <div phx-feedback-for={@name} class="w-10/12">
       <.label for={@id}><%= @label %></.label>
       <input
         type={@type}
@@ -419,7 +419,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
   defp get_color(v) when v > 1, do: "bg-red-600"
   defp get_color(_), do: "bg-black"
 
-  defp live_css(true), do: "outline outline-offset-0 outline-yellow-400 "
+  defp live_css(true), do: "outline outline-offset-0 outline-yellow-400 animate-pulse"
   defp live_css(false), do: ""
 
   @doc """

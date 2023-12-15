@@ -10,20 +10,26 @@ defmodule ExStatusCheck.Workers.Check do
   def perform(%Oban.Job{args: %{"page_id" => page_id} = args}) do
     # we are safe here for retries thanks to uniqueness
     job = Oban.insert!(__MODULE__.new(args, schedule_in: 30))
+
+    page = Pages.get_page(page_id)
     # while I am not too happy to do this here, this is the safest
     # in case we lose the job id on the page for any reason
-    with page = %Pages.Page{url: url} <- Pages.get_page(page_id),
-         {:ok, _} = Pages.update_page_with_oban_job_id(page, job.id),
-         {:ok, %Req.Response{status: status}} =
+    with page = %Pages.Page{url: url} <- page,
+         {:ok, _} <- Pages.update_page_with_oban_job_id(page, job.id),
+         {:ok, %Req.Response{status: status}} <-
            Req.get(url, retry: false, connect_options: [timeout: 5000]),
          {:ok, _} <-
-           Checks.create_check(%{page_id: page_id, success: status == 200}) do
+           Checks.create_check(%{page_id: page_id, success: status < 500}) do
       Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, Pages.topic_name(page), :new_check)
       :ok
     else
       nil ->
         Oban.cancel_job(job)
         {:cancel, "page deleted"}
+
+      {:error, %Mint.TransportError{reason: :ehostunreach}} ->
+        Pages.delete_page(page)
+        {:cancel, "ehostunreach"}
 
       err ->
         err

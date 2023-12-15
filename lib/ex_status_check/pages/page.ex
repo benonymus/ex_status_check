@@ -42,11 +42,12 @@ defmodule ExStatusCheck.Pages.Page do
 
     with {:ok, %URI{scheme: scheme, host: host, path: path} = uri} <- URI.new(url),
          {:scheme, false} <- {:scheme, is_nil(scheme)},
-         false <- is_nil(host),
-         {:path, false} <- {:path, is_nil(path)},
-         :inet.gethostbyname(to_charlist(host)) do
+         {:host, false} <- {:host, is_nil(host)},
+         {:ok, _} <- :inet.gethostbyname(to_charlist(host)) do
+      path = path || "/"
+
       url =
-        %URI{uri | scheme: "https", query: nil}
+        %URI{uri | scheme: "https", path: path, query: nil}
         |> URI.to_string()
         |> String.downcase()
 
@@ -54,18 +55,11 @@ defmodule ExStatusCheck.Pages.Page do
       |> force_change(:url, url)
       |> force_change(:slug_base, host <> path)
     else
-      {:scheme, true} ->
-        changeset
-        |> force_change(:url, "https://" <> url)
-        |> check_url()
+      {missing_thing, true} ->
+        add_error(changeset, :url, "invalid url - missing #{missing_thing}")
 
-      {:path, true} ->
-        changeset
-        |> force_change(:url, url <> "/")
-        |> check_url()
-
-      _ ->
-        add_error(changeset, :url, "invalid")
+      err ->
+        add_error(changeset, :url, "invalid url - #{inspect(err)}")
     end
   end
 

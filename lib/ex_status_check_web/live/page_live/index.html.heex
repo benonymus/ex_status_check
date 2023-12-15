@@ -1,32 +1,21 @@
-<.header>
-  Listing Pages
-  <:actions>
-    <.link patch={~p"/pages/new"}>
-      <.button>New Page</.button>
-    </.link>
-  </:actions>
-</.header>
+<.live_component module={ExStatusCheckWeb.PageLive.FormComponent} id={:new} page={@page} />
 
 <.table
   id="pages"
   rows={@streams.pages}
   row_click={fn {_id, page} -> JS.navigate(~p"/pages/#{page.slug}") end}
 >
-  <:col :let={{_id, page}} label="Url"><%= page.url %></:col>
+  <:col :let={{_id, page}} label="Pages"><%= page.url %></:col>
   <:action :let={{_id, page}}>
     <div class="sr-only">
       <.link navigate={~p"/pages/#{page.slug}"}>Show</.link>
     </div>
   </:action>
+  <:col :let={{_id, page}} label="Today">
+    <.live_component
+      module={ExStatusCheckWeb.PageLive.CheckComponent}
+      id={"page_#{page.id}"}
+      page_id={page.id}
+    />
+  </:col>
 </.table>
-
-<.modal :if={@live_action in [:new]} id="page-modal" show on_cancel={JS.patch(~p"/")}>
-  <.live_component
-    module={ExStatusCheckWeb.PageLive.FormComponent}
-    id={@page.id || :new}
-    title={@page_title}
-    action={@live_action}
-    page={@page}
-    patch={~p"/"}
-  />
-</.modal>

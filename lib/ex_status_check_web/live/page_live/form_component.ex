@@ -7,21 +7,16 @@ defmodule ExStatusCheckWeb.PageLive.FormComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.header>
-        <%= @title %>
-        <:subtitle>Use this form to manage page records in your database.</:subtitle>
-      </.header>
-
       <.simple_form
         for={@form}
         id="page-form"
         phx-target={@myself}
-        phx-change="validate"
+        phx-change="change"
         phx-submit="save"
       >
-        <.input field={@form[:url]} type="text" label="Url" />
+        <.input field={@form[:url]} type="text" placeholder="https://google.com/" />
         <:actions>
-          <.button phx-disable-with="Saving...">Save Page</.button>
+          <.button phx-disable-with="Saving...">Check page</.button>
         </:actions>
       </.simple_form>
     </div>
@@ -39,28 +34,28 @@ defmodule ExStatusCheckWeb.PageLive.FormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"page" => page_params}, socket) do
+  def handle_event("change", %{"page" => page_params}, socket) do
     changeset =
-      socket.assigns.page
-      |> Pages.change_page(page_params)
-      |> Map.put(:action, :validate)
+      Pages.change_page(socket.assigns.page, page_params)
+
+    notify_parent({:filter, String.trim(page_params["url"])})
 
     {:noreply, assign_form(socket, changeset)}
   end
 
   def handle_event("save", %{"page" => page_params}, socket) do
-    save_page(socket, socket.assigns.action, page_params)
+    save_page(socket, page_params)
   end
 
-  defp save_page(socket, :new, page_params) do
-    case Pages.create_page(page_params) do
+  defp save_page(socket, page_params) do
+    case Pages.create_page(page_params) |> IO.inspect() do
       {:ok, page} ->
-        notify_parent({:saved, page})
+        Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, "homepage", {:new_page, page})
 
         {:noreply,
          socket
-         |> put_flash(:info, "Page created successfully")
-         |> push_patch(to: socket.assigns.patch)}
+         |> put_flash(:info, "Page added successfully")
+         |> push_navigate(to: ~p"/pages/#{page.slug}")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}

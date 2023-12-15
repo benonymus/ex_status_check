@@ -8,7 +8,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     {:ok,
      assign(socket,
        connected?: connected?(socket),
-       locale: get_connect_params(socket)["locale"],
+       # locale: get_connect_params(socket)["locale"],
        timezone: get_connect_params(socket)["timezone"],
        checks: [],
        current_check: nil,

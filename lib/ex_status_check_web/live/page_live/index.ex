@@ -6,30 +6,29 @@ defmodule ExStatusCheckWeb.PageLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    # locale and timezone are here
-    IO.inspect(get_connect_params(socket))
-    {:ok, stream(socket, :pages, Pages.list_pages())}
+    {:ok,
+     socket
+     |> assign(connected?: connected?(socket), page: %Page{})
+     |> stream(:pages, Pages.list_pages())}
   end
 
   @impl true
-  def handle_params(params, _url, socket) do
-    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
-  end
+  def handle_params(_params, _, socket) do
+    if socket.assigns.connected?,
+      do: Phoenix.PubSub.subscribe(ExStatusCheck.PubSub, "homepage")
 
-  defp apply_action(socket, :new, _params) do
-    socket
-    |> assign(:page_title, "New Page")
-    |> assign(:page, %Page{})
-  end
-
-  defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:page_title, "Listing Pages")
-    |> assign(:page, nil)
+    {:noreply, socket}
   end
 
   @impl true
-  def handle_info({ExStatusCheckWeb.PageLive.FormComponent, {:saved, page}}, socket) do
+  def handle_info({:new_page, page}, socket) do
     {:noreply, stream_insert(socket, :pages, page)}
   end
+
+  # this has room for optimization
+  def handle_info({ExStatusCheckWeb.PageLive.FormComponent, {:filter, filter}}, socket) do
+    {:noreply, stream(socket, :pages, Pages.list_filtered_pages(filter), reset: true)}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 end
