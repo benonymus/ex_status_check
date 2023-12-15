@@ -21,6 +21,7 @@ defmodule ExStatusCheck.Workers.Check do
          {:ok, _} <-
            Checks.create_check(%{page_id: page_id, success: status < 500}) do
       Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, Pages.topic_name(page), :new_check)
+      Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, "homepage", {:new_check, page_id})
       :ok
     else
       nil ->

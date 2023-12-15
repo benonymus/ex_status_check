@@ -11,7 +11,6 @@ defmodule ExStatusCheckWeb.PageLive.Show do
        # locale: get_connect_params(socket)["locale"],
        timezone: get_connect_params(socket)["timezone"],
        checks: [],
-       current_check: nil,
        type: :day,
        datetime_string: nil
      )}
@@ -30,8 +29,12 @@ defmodule ExStatusCheckWeb.PageLive.Show do
   @impl true
   def handle_info(
         :new_check,
-        %{assigns: %{type: type, datetime_string: datetime_string}} = socket
+        %{assigns: %{type: type, datetime_string: datetime_string, page: page}} = socket
       ) do
+    send_update(ExStatusCheckWeb.PageLive.LiveCheckComponent,
+      id: "page_#{page.id}_#{type}_show"
+    )
+
     {:noreply,
      assign_extras(socket, %{"type" => Atom.to_string(type), "datetime" => datetime_string})}
   end
@@ -48,15 +51,10 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     checks =
       Checks.get_status_for(socket.assigns.page.id, datetime, skip_last, :minute)
 
-    current_check =
-      if skip_last,
-        do: Checks.get_status_for_current_interval(socket.assigns.page.id, :minute)
-
     assign(socket,
       type: :minute,
       datetime_string: datetime_string,
-      checks: checks,
-      current_check: current_check
+      checks: checks
     )
   end
 
@@ -68,15 +66,10 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     checks =
       Checks.get_status_for(socket.assigns.page.id, datetime, skip_last, :hour)
 
-    current_check =
-      if skip_last,
-        do: Checks.get_status_for_current_interval(socket.assigns.page.id, :hour)
-
     assign(socket,
       type: :hour,
       datetime_string: datetime_string,
-      checks: checks,
-      current_check: current_check
+      checks: checks
     )
   end
 
@@ -84,33 +77,8 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     checks =
       Checks.get_status_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -29)
 
-    current_check = Checks.get_status_for_current_interval(socket.assigns.page.id, :day)
-
-    assign(socket, type: :day, datetime_string: nil, checks: checks, current_check: current_check)
+    assign(socket, type: :day, datetime_string: nil, checks: checks)
   end
-
-  def build_next_path(type, slug, datetime) do
-    type = next_type(type)
-
-    unless is_nil(type), do: ~p"/pages/#{slug}?datetime=#{datetime}&type=#{type}"
-  end
-
-  defp next_type(:day), do: :hour
-  defp next_type(:hour), do: :minute
-  defp next_type(:minute), do: nil
-
-  # maybe localize these too and proper format depending on type
-  def format_date_time(input, time_zone, type) do
-    {:ok, datetime, _} = DateTime.from_iso8601(input)
-
-    datetime
-    |> Timex.Timezone.convert(time_zone)
-    |> Timex.format!(datetime_formatter(type))
-  end
-
-  defp datetime_formatter(:day), do: "{YYYY}-{0M}-{D}"
-  defp datetime_formatter(:hour), do: "{YYYY}-{0M}-{D} {h24}:{m}"
-  defp datetime_formatter(:minute), do: "{YYYY}-{0M}-{D} {h24}:{m}"
 
   def back_button_text(:day), do: "Home"
   def back_button_text(:hour), do: "Day"
@@ -123,12 +91,4 @@ defmodule ExStatusCheckWeb.PageLive.Show do
 
   def back_button_path(:minute, slug, datetime),
     do: ~p"/pages/#{slug}?datetime=#{datetime}&type=#{:hour}"
-
-  def calculate_percentage(%{true: 0, false: 0}), do: 0
-
-  def calculate_percentage(%{true: trues, false: falses}),
-    do: (trues / (trues + falses) * 100) |> Float.round(3)
-
-  def calculate_percentage(values),
-    do: %{true: 0, false: 0} |> Map.merge(values) |> calculate_percentage()
 end

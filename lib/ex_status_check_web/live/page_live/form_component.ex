@@ -6,7 +6,7 @@ defmodule ExStatusCheckWeb.PageLive.FormComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div>
+    <div class="pb-5">
       <.simple_form
         for={@form}
         id="page-form"
@@ -48,7 +48,7 @@ defmodule ExStatusCheckWeb.PageLive.FormComponent do
   end
 
   defp save_page(socket, page_params) do
-    case Pages.create_page(page_params) |> IO.inspect() do
+    case Pages.create_page(page_params) do
       {:ok, page} ->
         Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, "homepage", {:new_page, page})
 

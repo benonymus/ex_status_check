@@ -7,21 +7,22 @@
 </.back>
 
 <div :if={@connected?} class="flex flex-wrap justify-start">
-  <.parallelogram
-    :for={{date, v} <- @checks}
-    percentage={calculate_percentage(v)}
-    success_count={Map.get(v, true, 0)}
-    fail_count={Map.get(v, false, 0)}
-    date={format_date_time(date, @timezone, @type)}
-    path={build_next_path(@type, @page.slug, date)}
-  />
-  <.parallelogram
-    :if={not is_nil(@current_check)}
-    live={true}
-    percentage={calculate_percentage(@current_check.result)}
-    success_count={Map.get(@current_check.result, true, 0)}
-    fail_count={Map.get(@current_check.result, false, 0)}
-    date={"live - #{format_date_time(@current_check.date, @timezone, @type)}"}
-    path={build_next_path(@type, @page.slug, @current_check.date)}
+  <div :for={{date, result} <- @checks}>
+    <.parallelogram
+      slug={@page.slug}
+      result={result}
+      type={@type}
+      date={date}
+      timezone={@timezone}
+    />
+  </div>
+  <.live_component
+    module={ExStatusCheckWeb.PageLive.LiveCheckComponent}
+    id={"page_#{@page.id}_#{@type}_show"}
+    page={@page}
+    timezone={@timezone}
+    type={@type}
+    render_count={1}
+    tooltip_position="bottom"
   />
 </div>

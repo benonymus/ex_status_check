@@ -1,21 +1,38 @@
 <.live_component module={ExStatusCheckWeb.PageLive.FormComponent} id={:new} page={@page} />
 
-<.table
-  id="pages"
-  rows={@streams.pages}
-  row_click={fn {_id, page} -> JS.navigate(~p"/pages/#{page.slug}") end}
->
-  <:col :let={{_id, page}} label="Pages"><%= page.url %></:col>
-  <:action :let={{_id, page}}>
-    <div class="sr-only">
-      <.link navigate={~p"/pages/#{page.slug}"}>Show</.link>
-    </div>
-  </:action>
-  <:col :let={{_id, page}} label="Today">
-    <.live_component
-      module={ExStatusCheckWeb.PageLive.CheckComponent}
-      id={"page_#{page.id}"}
-      page_id={page.id}
-    />
-  </:col>
-</.table>
+<div :if={@connected?} class="grid grid-cols-2">
+  <.card :for={{_, page} <- @streams.pages} extend_class="m-1">
+    <.card_content>
+      <.link patch={~p"/pages/#{page.slug}"}>
+        <.typography
+          color="slate"
+          margin={false}
+          extend_class="mb-6 truncate hover:text-purple-600 hover:underline"
+        >
+          <%= page.url %>
+        </.typography>
+      </.link>
+      <div class="flex flex-col">
+        <div
+          :for={
+            {type, label} <- [{:day, "Today"}, {:hour, "This hour"}, {:minute, "This minute"}]
+          }
+          class="flex items-center justify-between"
+        >
+          <.typography color="slate">
+            <%= label %>
+          </.typography>
+          <.live_component
+            module={ExStatusCheckWeb.PageLive.LiveCheckComponent}
+            id={"page_#{page.id}_#{type}"}
+            page={page}
+            timezone={@timezone}
+            type={type}
+            render_count={1}
+            tooltip_position="left"
+          />
+        </div>
+      </div>
+    </.card_content>
+  </.card>
+</div>

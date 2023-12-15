@@ -27,10 +27,6 @@ defmodule ExStatusCheck.Pages do
     Repo.all(Page)
   end
 
-  def list_filtered_pages(filter) do
-    Enum.filter(list_pages(), fn %Page{url: url} -> url =~ filter end)
-  end
-
   @doc """
   Gets a single page.
   """

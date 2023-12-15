@@ -15,6 +15,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
   """
   use Phoenix.Component
+  use ExStatusCheckWeb, :verified_routes
 
   alias Phoenix.LiveView.JS
   import Phoenix.UI.Components.Tooltip
@@ -392,19 +393,30 @@ defmodule ExStatusCheckWeb.CoreComponents do
   @doc """
   Renders a parallelogram shaped link with tooltip.
   """
-  attr :percentage, :integer, required: true
-  attr :success_count, :integer, required: true
-  attr :fail_count, :integer, required: true
-  attr :path, :string, default: nil
-  attr :date, :string
+  attr :slug, :string, required: true
+  attr :result, :map, required: true
+  attr :type, :atom, required: true
+  attr :date, :string, required: true
+  attr :timezone, :string, required: true
+
   attr :live, :boolean, default: false
+  attr :tooltip_position, :string, default: "bottom"
 
   def parallelogram(assigns) do
+    assigns =
+      assign(
+        assigns,
+        percentage: calculate_percentage(assigns.result),
+        path: build_next_path(assigns.type, assigns.slug, assigns.date),
+        success_count: Map.get(assigns.result, true, 0),
+        fail_count: Map.get(assigns.result, false, 0)
+      )
+
     ~H"""
     <.tooltip
-      content={"#{@date} - #{@success_count}/#{@fail_count} - #{@percentage}%"}
+      content={"#{format_date_time(@date, @timezone, @type)} - #{@success_count}/#{@fail_count} - #{@percentage}%"}
       variant="simple"
-      position="bottom"
+      position={@tooltip_position}
     >
       <.link patch={@path} class={if is_nil(@path), do: "pointer-events-none"}>
         <div class={"m-px w-8 h-12 skew-x-6 rounded-lg #{get_color(@percentage)} #{live_css(@live)}"} />
@@ -421,6 +433,37 @@ defmodule ExStatusCheckWeb.CoreComponents do
 
   defp live_css(true), do: "outline outline-offset-0 outline-yellow-400 animate-pulse"
   defp live_css(false), do: ""
+
+  defp build_next_path(type, slug, datetime) do
+    type = next_type(type)
+
+    unless is_nil(type), do: ~p"/pages/#{slug}?datetime=#{datetime}&type=#{type}"
+  end
+
+  defp next_type(:day), do: :hour
+  defp next_type(:hour), do: :minute
+  defp next_type(:minute), do: nil
+
+  # maybe localize these too and proper format depending on type
+  defp format_date_time(input, time_zone, type) do
+    {:ok, datetime, _} = DateTime.from_iso8601(input)
+
+    datetime
+    |> Timex.Timezone.convert(time_zone)
+    |> Timex.format!(datetime_formatter(type))
+  end
+
+  defp datetime_formatter(:day), do: "{YYYY}-{0M}-{D}"
+  defp datetime_formatter(:hour), do: "{YYYY}-{0M}-{D} {h24}:{m}"
+  defp datetime_formatter(:minute), do: "{YYYY}-{0M}-{D} {h24}:{m}"
+
+  defp calculate_percentage(%{true: 0, false: 0}), do: 0
+
+  defp calculate_percentage(%{true: trues, false: falses}),
+    do: (trues / (trues + falses) * 100) |> Float.round(3)
+
+  defp calculate_percentage(values),
+    do: %{true: 0, false: 0} |> Map.merge(values) |> calculate_percentage()
 
   @doc """
   Renders a label.
@@ -511,7 +554,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
       <table class="w-[40rem] mt-11 sm:w-full">
         <thead class="text-sm text-left leading-6 text-zinc-500">
           <tr>
-            <th :for={col <- @col} class="p-0 pb-4 pr-6 font-normal"><%= col[:label] %></th>
+            <th :for={col <- @col} class="p-0 pb-4 w-20 font-normal"><%= col[:label] %></th>
             <th :if={@action != []} class="relative p-0 pb-4">
               <span class="sr-only"><%= gettext("Actions") %></span>
             </th>
