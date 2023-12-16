@@ -5,9 +5,9 @@ defmodule ExStatusCheck.PagesTest do
   alias ExStatusCheck.Pages
 
   describe "pages" do
-    alias ExStatusCheck.Pages.Page
-
     import ExStatusCheck.PagesFixtures
+
+    alias ExStatusCheck.Pages.Page
 
     @invalid_attrs %{url: nil}
 
@@ -34,7 +34,7 @@ defmodule ExStatusCheck.PagesTest do
       assert page.url == "https://test_url.com/"
 
       refute is_nil(page.oban_job_id)
-      assert_enqueued(worker: ExStatusCheck.Workers.Check, args: %{page_id: page.id})
+      assert_enqueued(worker: ExStatusCheck.Workers.MakeCheck, args: %{page_id: page.id})
     end
 
     test "create_page/1 with invalid data returns error changeset" do

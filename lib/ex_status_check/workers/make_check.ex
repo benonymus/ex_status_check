@@ -1,4 +1,4 @@
-defmodule ExStatusCheck.Workers.Check do
+defmodule ExStatusCheck.Workers.MakeCheck do
   @moduledoc false
   use Oban.Worker,
     queue: :checks,
@@ -15,7 +15,7 @@ defmodule ExStatusCheck.Workers.Check do
     page = Pages.get_page(page_id)
     # while I am not too happy to do this here, this is the safest
     # in case we lose the job id on the page for any reason
-    with page = %Pages.Page{url: url} <- page,
+    with %Pages.Page{url: url} <- page,
          {:ok, _} <- Pages.update_page_with_oban_job_id(page, job.id),
          {:ok, %Req.Response{status: status}} <-
            Req.get(url, retry: false, connect_options: [timeout: 5000]),
@@ -31,6 +31,7 @@ defmodule ExStatusCheck.Workers.Check do
 
       {:error, %Mint.TransportError{reason: :ehostunreach}} ->
         Pages.delete_page(page)
+        Oban.cancel_job(job)
         {:cancel, "ehostunreach"}
 
       err ->

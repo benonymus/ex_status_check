@@ -56,7 +56,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     skip_last = Date.compare(datetime, now) == :eq and datetime.hour == now.hour
 
     checks =
-      Checks.get_status_for(socket.assigns.page.id, datetime, skip_last, :minute)
+      Checks.get_results_for(socket.assigns.page.id, datetime, skip_last, :minute)
 
     assign(socket,
       type: :minute,
@@ -72,7 +72,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     skip_last = Date.compare(datetime, Date.utc_today()) == :eq
 
     checks =
-      Checks.get_status_for(socket.assigns.page.id, datetime, skip_last, :hour)
+      Checks.get_results_for(socket.assigns.page.id, datetime, skip_last, :hour)
 
     assign(socket,
       type: :hour,
@@ -84,7 +84,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
 
   defp assign_extras(socket, _) do
     checks =
-      Checks.get_status_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -29)
+      Checks.get_results_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -29)
 
     assign(socket, type: :day, datetime_string: nil, checks: checks, skip_last: true)
   end

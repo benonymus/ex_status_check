@@ -36,7 +36,7 @@ defmodule ExStatusCheck.Checks do
               key: {id, interval},
               opts: [ttl: :timer.seconds(30)]
             )
-  def get_status_for_current_interval(id, interval) do
+  def get_results_for_current_interval(id, interval) do
     datetime = DateTime.utc_now()
 
     datetime_string =
@@ -63,7 +63,7 @@ defmodule ExStatusCheck.Checks do
               key: cache_key(id, interval, datetime),
               opts: [ttl: :timer.hours(12)]
             )
-  def get_status_for(
+  def get_results_for(
         id,
         datetime,
         skip_last,
@@ -71,6 +71,7 @@ defmodule ExStatusCheck.Checks do
         amount \\ nil
       ) do
     {substr_length, padding} = substr_length_and_padding(interval)
+
     # this is faster than subqueries
     Check
     |> where(page_id: ^id)

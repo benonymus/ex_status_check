@@ -4,10 +4,6 @@ defmodule ExStatusCheckWeb.PageLiveTest do
   import Phoenix.LiveViewTest
   import ExStatusCheck.PagesFixtures
 
-  @create_attrs %{url: "some url"}
-  @update_attrs %{url: "some updated url"}
-  @invalid_attrs %{url: nil}
-
   defp create_page(_) do
     page = page_fixture()
     %{page: page}
@@ -17,63 +13,27 @@ defmodule ExStatusCheckWeb.PageLiveTest do
     setup [:create_page]
 
     test "lists all pages", %{conn: conn, page: page} do
-      {:ok, _index_live, html} = live(conn, ~p"/pages")
+      {:ok, _index_live, html} = live(conn, ~p"/")
 
-      assert html =~ "Listing Pages"
+      assert html =~ "Check page"
       assert html =~ page.url
     end
 
     test "saves new page", %{conn: conn} do
-      {:ok, index_live, _html} = live(conn, ~p"/pages")
+      stub_host_check()
 
-      assert index_live |> element("a", "New Page") |> render_click() =~
-               "New Page"
-
-      assert_patch(index_live, ~p"/pages/new")
+      {:ok, index_live, _html} = live(conn, ~p"/")
 
       assert index_live
-             |> form("#page-form", page: @invalid_attrs)
-             |> render_change() =~ "can&#39;t be blank"
+             |> form("#page-form", page: %{url: nil})
+             |> render_submit() =~ "can&#39;t be blank"
 
-      assert index_live
-             |> form("#page-form", page: @create_attrs)
-             |> render_submit()
+      assert {:error, {:live_redirect, %{to: path}}} =
+               index_live
+               |> form("#page-form", page: %{url: "https://new_test_url.com/"})
+               |> render_submit()
 
-      assert_patch(index_live, ~p"/pages")
-
-      html = render(index_live)
-      assert html =~ "Page created successfully"
-      assert html =~ "some url"
-    end
-
-    test "updates page in listing", %{conn: conn, page: page} do
-      {:ok, index_live, _html} = live(conn, ~p"/pages")
-
-      assert index_live |> element("#pages-#{page.id} a", "Edit") |> render_click() =~
-               "Edit Page"
-
-      assert_patch(index_live, ~p"/pages/#{page}/edit")
-
-      assert index_live
-             |> form("#page-form", page: @invalid_attrs)
-             |> render_change() =~ "can&#39;t be blank"
-
-      assert index_live
-             |> form("#page-form", page: @update_attrs)
-             |> render_submit()
-
-      assert_patch(index_live, ~p"/pages")
-
-      html = render(index_live)
-      assert html =~ "Page updated successfully"
-      assert html =~ "some updated url"
-    end
-
-    test "deletes page in listing", %{conn: conn, page: page} do
-      {:ok, index_live, _html} = live(conn, ~p"/pages")
-
-      assert index_live |> element("#pages-#{page.id} a", "Delete") |> render_click()
-      refute has_element?(index_live, "#pages-#{page.id}")
+      assert path =~ "/pages/"
     end
   end
 
@@ -81,33 +41,9 @@ defmodule ExStatusCheckWeb.PageLiveTest do
     setup [:create_page]
 
     test "displays page", %{conn: conn, page: page} do
-      {:ok, _show_live, html} = live(conn, ~p"/pages/#{page}")
+      {:ok, _show_live, html} = live(conn, ~p"/pages/#{page.slug}")
 
-      assert html =~ "Show Page"
       assert html =~ page.url
-    end
-
-    test "updates page within modal", %{conn: conn, page: page} do
-      {:ok, show_live, _html} = live(conn, ~p"/pages/#{page}")
-
-      assert show_live |> element("a", "Edit") |> render_click() =~
-               "Edit Page"
-
-      assert_patch(show_live, ~p"/pages/#{page}/show/edit")
-
-      assert show_live
-             |> form("#page-form", page: @invalid_attrs)
-             |> render_change() =~ "can&#39;t be blank"
-
-      assert show_live
-             |> form("#page-form", page: @update_attrs)
-             |> render_submit()
-
-      assert_patch(show_live, ~p"/pages/#{page}")
-
-      html = render(show_live)
-      assert html =~ "Page updated successfully"
-      assert html =~ "some updated url"
     end
   end
 end

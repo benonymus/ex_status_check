@@ -8,7 +8,7 @@ defmodule ExStatusCheckWeb.PageLive.LiveCheckComponent do
     assigns =
       assign(
         assigns,
-        current_check: Checks.get_status_for_current_interval(assigns.page.id, assigns.type)
+        current_check: Checks.get_results_for_current_interval(assigns.page.id, assigns.type)
       )
 
     ~H"""

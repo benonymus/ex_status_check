@@ -33,6 +33,11 @@ defmodule ExStatusCheckWeb.ConnCase do
 
   setup tags do
     ExStatusCheck.DataCase.setup_sandbox(tags)
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+
+    {:ok,
+     conn:
+       Phoenix.LiveViewTest.put_connect_params(Phoenix.ConnTest.build_conn(), %{
+         "timezone" => "Etc/UTC"
+       })}
   end
 end
