@@ -17,6 +17,7 @@
     />
   </div>
   <.live_component
+    :if={@skip_last}
     module={ExStatusCheckWeb.PageLive.LiveCheckComponent}
     id={"page_#{@page.id}_#{@type}_show"}
     page={@page}

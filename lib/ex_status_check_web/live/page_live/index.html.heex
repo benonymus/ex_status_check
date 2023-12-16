@@ -1,7 +1,7 @@
 <.live_component module={ExStatusCheckWeb.PageLive.FormComponent} id={:new} page={@page} />
 
-<div :if={@connected?} class="grid grid-cols-2">
-  <.card :for={{_, page} <- @streams.pages} extend_class="m-1">
+<div :if={@connected?} id="list_pages" phx-update="stream" class="grid grid-cols-2">
+  <.card :for={{dom_id, page} <- @streams.pages} id={dom_id} extend_class="m-1">
     <.card_content>
       <.link patch={~p"/pages/#{page.slug}"}>
         <.typography

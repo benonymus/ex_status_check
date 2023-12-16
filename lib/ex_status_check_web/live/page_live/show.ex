@@ -10,9 +10,16 @@ defmodule ExStatusCheckWeb.PageLive.Show do
        connected?: connected?(socket),
        # locale: get_connect_params(socket)["locale"],
        timezone: get_connect_params(socket)["timezone"],
+       # can't stream checks due to design,
+       # can't show current check as last in line nicely,
+       # it gets dropped to new line
+       # or if it is in one div things get out of order due to appending
+       # reset: true did not help on stream
+       # if it would be the first item or separately shown then yes
        checks: [],
        type: :day,
-       datetime_string: nil
+       datetime_string: nil,
+       skip_last: false
      )}
   end
 
@@ -54,7 +61,8 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     assign(socket,
       type: :minute,
       datetime_string: datetime_string,
-      checks: checks
+      checks: checks,
+      skip_last: skip_last
     )
   end
 
@@ -69,7 +77,8 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     assign(socket,
       type: :hour,
       datetime_string: datetime_string,
-      checks: checks
+      checks: checks,
+      skip_last: skip_last
     )
   end
 
@@ -77,7 +86,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     checks =
       Checks.get_status_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -29)
 
-    assign(socket, type: :day, datetime_string: nil, checks: checks)
+    assign(socket, type: :day, datetime_string: nil, checks: checks, skip_last: false)
   end
 
   def back_button_text(:day), do: "Home"
