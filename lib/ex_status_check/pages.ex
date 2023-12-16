@@ -8,6 +8,7 @@ defmodule ExStatusCheck.Pages do
   alias Ecto.Multi
   alias ExStatusCheck.{Cache, Repo}
   alias ExStatusCheck.Pages.Page
+  alias ExStatusCheck.Workers.Check, as: CheckWorker
 
   @doc """
   Returns the list of pages.
@@ -77,7 +78,7 @@ defmodule ExStatusCheck.Pages do
           |> DateTime.to_date()
           |> Timex.DateTime.new!(time_start)
 
-        ExStatusCheck.Workers.Check.new(%{page_id: page.id}, scheduled_at: scheduled_at)
+        CheckWorker.new(%{page_id: page.id}, scheduled_at: scheduled_at)
       end
     )
     |> Multi.update(

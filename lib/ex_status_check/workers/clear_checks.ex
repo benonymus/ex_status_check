@@ -1,10 +1,11 @@
 defmodule ExStatusCheck.Workers.ClearChecks do
+  @moduledoc false
   use Oban.Worker, queue: :default
 
   import Ecto.Query, warn: false
 
-  alias ExStatusCheck.Repo
   alias ExStatusCheck.Checks.Check
+  alias ExStatusCheck.Repo
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"days_ago" => days}}) do

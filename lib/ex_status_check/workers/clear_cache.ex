@@ -1,4 +1,5 @@
 defmodule ExStatusCheck.Workers.ClearCache do
+  @moduledoc false
   use Oban.Worker, queue: :default
 
   import Ex2ms

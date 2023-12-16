@@ -17,9 +17,11 @@ defmodule ExStatusCheckWeb.CoreComponents do
   use Phoenix.Component
   use ExStatusCheckWeb, :verified_routes
 
-  alias Phoenix.LiveView.JS
   import Phoenix.UI.Components.Tooltip
   import ExStatusCheckWeb.Gettext
+
+  alias Phoenix.HTML.Form, as: PhoenixForm
+  alias Phoenix.LiveView.JS
 
   @doc """
   Renders a modal.
@@ -305,7 +307,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
   def input(%{type: "checkbox"} = assigns) do
     assigns =
       assign_new(assigns, :checked, fn ->
-        Phoenix.HTML.Form.normalize_value("checkbox", assigns[:value])
+        PhoenixForm.normalize_value("checkbox", assigns[:value])
       end)
 
     ~H"""

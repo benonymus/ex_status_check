@@ -1,4 +1,5 @@
 defmodule ExStatusCheck.Workers.Check do
+  @moduledoc false
   use Oban.Worker,
     queue: :checks,
     max_attempts: 3,

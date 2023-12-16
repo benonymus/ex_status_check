@@ -1,8 +1,10 @@
 defmodule ExStatusCheck.Pages.Page do
+  @moduledoc false
   use Ecto.Schema
   import Ecto.Changeset
 
   defmodule URLSlug do
+    @moduledoc false
     use EctoAutoslugField.Slug, from: :slug_base, to: :slug
   end
 
