@@ -71,7 +71,7 @@ defmodule ExStatusCheck.Checks do
         amount \\ nil
       ) do
     {substr_length, padding} = substr_length_and_padding(interval)
-    # this way is faster than subqueries
+    # this is faster than subqueries
     Check
     |> where(page_id: ^id)
     |> where(

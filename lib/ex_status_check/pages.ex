@@ -23,15 +23,25 @@ defmodule ExStatusCheck.Pages do
               key: :pages,
               opts: [ttl: :timer.hours(12)]
             )
-  def list_pages do
-    Repo.all(Page)
-  end
+  def list_pages, do: Repo.all(Page)
 
   @doc """
   Gets a single page.
   """
+  @decorate cacheable(
+              cache: Cache,
+              key: {:page, id},
+              opts: [ttl: :timer.hours(12)]
+            )
   def get_page(id), do: Repo.get(Page, id)
-  def get_page_by!(clauses), do: Repo.get_by!(Page, clauses)
+
+  @decorate cacheable(
+              cache: Cache,
+              key: {:page, slug},
+              references: &{:page, &1.id},
+              opts: [ttl: :timer.hours(12)]
+            )
+  def get_page_by_slug!(slug), do: Repo.get_by!(Page, slug: slug)
 
   @doc """
   Creates a page.
@@ -58,7 +68,16 @@ defmodule ExStatusCheck.Pages do
     |> Oban.insert(
       :check_job,
       fn %{page: page} ->
-        ExStatusCheck.Workers.Check.new(%{page_id: page.id})
+        datetime = DateTime.utc_now()
+        time_start = Timex.Time.new!(datetime.hour, datetime.minute + 1, 10)
+
+        # next minute 10 sec
+        scheduled_at =
+          datetime
+          |> DateTime.to_date()
+          |> Timex.DateTime.new!(time_start)
+
+        ExStatusCheck.Workers.Check.new(%{page_id: page.id}, scheduled_at: scheduled_at)
       end
     )
     |> Multi.update(
@@ -97,7 +116,7 @@ defmodule ExStatusCheck.Pages do
   """
   @decorate cache_evict(
               cache: Cache,
-              key: :pages
+              keys: [:pages, {:page, page.id}]
             )
   def delete_page(%Page{} = page) do
     Repo.delete(page)
@@ -116,6 +135,6 @@ defmodule ExStatusCheck.Pages do
     Page.changeset(page, attrs)
   end
 
-  # helper
+  # helpers
   def topic_name(page), do: "page:#{page.id}"
 end

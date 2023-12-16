@@ -8,11 +8,11 @@ defmodule ExStatusCheck.Workers.ClearChecks do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"days_ago" => days}}) do
-    month_ago =
+    days_ago =
       DateTime.utc_now() |> DateTime.add(-days, :day) |> DateTime.to_string()
 
     Check
-    |> where([c], c.inserted_at < ^month_ago)
+    |> where([c], c.inserted_at < ^days_ago)
     |> Repo.delete_all()
 
     :ok

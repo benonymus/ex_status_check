@@ -25,7 +25,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
 
   @impl true
   def handle_params(%{"slug" => slug} = params, _, socket) do
-    page = Pages.get_page_by!(slug: slug)
+    page = Pages.get_page_by_slug!(slug)
 
     if socket.assigns.connected?,
       do: Phoenix.PubSub.subscribe(ExStatusCheck.PubSub, "page:#{page.id}")
