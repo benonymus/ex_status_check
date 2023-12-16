@@ -19,7 +19,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
        checks: [],
        type: :day,
        datetime_string: nil,
-       skip_last: false
+       skip_last: true
      )}
   end
 
@@ -86,7 +86,7 @@ defmodule ExStatusCheckWeb.PageLive.Show do
     checks =
       Checks.get_status_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -29)
 
-    assign(socket, type: :day, datetime_string: nil, checks: checks, skip_last: false)
+    assign(socket, type: :day, datetime_string: nil, checks: checks, skip_last: true)
   end
 
   def back_button_text(:day), do: "Home"
