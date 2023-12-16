@@ -1,5 +1,12 @@
 # ExStatusCheck
 
+Small website status checker made with Elixir, Phoenix LiveView, Oban and SQLite deployed to fly.io.
+
+A functional test project to explore SQLite prompted by `https://fly.io/blog/introducing-litefs/` and a failed job prospect.
+
+Deployment link:
+
+## Local development
 To start your Phoenix server:
 
   * Run `mix setup` to install and setup dependencies
@@ -7,12 +14,10 @@ To start your Phoenix server:
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
-
-## Learn more
-
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+## Could be nice to have
+- Better test coverage
+- Alerting - email or different outlets
+- One level deeper page that shows the actual checks, it would need more info to be saved about success/failure
+- UI tweaks, show more numbers not just in the tooltips
+- Remove pages that have not been visited in a while
+- Rate limit page creation
