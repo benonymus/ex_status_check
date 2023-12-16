@@ -5,6 +5,7 @@ defmodule ExStatusCheck.Pages do
   use Nebulex.Caching
 
   import Ecto.Query, warn: false
+
   alias Ecto.Multi
   alias ExStatusCheck.{Cache, Repo}
   alias ExStatusCheck.Pages.Page
@@ -35,6 +36,8 @@ defmodule ExStatusCheck.Pages do
               opts: [ttl: :timer.hours(12)]
             )
   def get_page(id), do: Repo.get(Page, id)
+
+  def get_page!(id), do: Repo.get!(Page, id)
 
   @decorate cacheable(
               cache: Cache,

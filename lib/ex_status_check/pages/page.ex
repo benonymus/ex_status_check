@@ -45,13 +45,14 @@ defmodule ExStatusCheck.Pages.Page do
     with {:ok, %URI{scheme: scheme, host: host, path: path} = uri} <- URI.new(url),
          {:scheme, false} <- {:scheme, is_nil(scheme)},
          {:host, false} <- {:host, is_nil(host)},
-         {:ok, _} <- :inet.gethostbyname(to_charlist(host)) do
+         {:ok, _} <- ExStatusCheck.Utils.validate_host(host) do
       path = path || "/"
 
       url =
         %URI{uri | scheme: "https", path: path, query: nil}
         |> URI.to_string()
         |> String.downcase()
+        |> String.trim()
 
       changeset
       |> force_change(:url, url)

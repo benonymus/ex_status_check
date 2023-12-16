@@ -4,17 +4,27 @@ defmodule ExStatusCheck.PagesFixtures do
   entities via the `ExStatusCheck.Pages` context.
   """
 
+  import Mimic
+
   @doc """
   Generate a page.
   """
   def page_fixture(attrs \\ %{}) do
+    stub_host_check()
+
     {:ok, page} =
       attrs
       |> Enum.into(%{
-        url: "some url"
+        url: "https://test_url.com"
       })
       |> ExStatusCheck.Pages.create_page()
 
     page
+  end
+
+  def stub_host_check do
+    stub(ExStatusCheck.Utils, :validate_host, fn _ ->
+      {:ok, nil}
+    end)
   end
 end

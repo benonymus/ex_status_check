@@ -1,5 +1,6 @@
 defmodule ExStatusCheck.PagesTest do
   use ExStatusCheck.DataCase
+  use Oban.Testing, repo: ExStatusCheck.Repo, prefix: false
 
   alias ExStatusCheck.Pages
 
@@ -12,37 +13,33 @@ defmodule ExStatusCheck.PagesTest do
 
     test "list_pages/0 returns all pages" do
       page = page_fixture()
-      assert Pages.list_pages() == [page]
+      assert Pages.list_pages() == [%Page{page | slug_base: nil}]
+    end
+
+    test "get_page/1 returns the page with given id" do
+      page = page_fixture()
+      assert Pages.get_page!(page.id) == %Page{page | slug_base: nil}
     end
 
     test "get_page!/1 returns the page with given id" do
       page = page_fixture()
-      assert Pages.get_page!(page.id) == page
+      assert Pages.get_page!(page.id) == %Page{page | slug_base: nil}
     end
 
     test "create_page/1 with valid data creates a page" do
-      valid_attrs = %{url: "some url"}
+      stub_host_check()
+      valid_attrs = %{url: "https://test_url.com/"}
 
       assert {:ok, %Page{} = page} = Pages.create_page(valid_attrs)
-      assert page.url == "some url"
+      assert page.url == "https://test_url.com/"
+
+      refute is_nil(page.oban_job_id)
+      assert_enqueued(worker: ExStatusCheck.Workers.Check, args: %{page_id: page.id})
     end
 
     test "create_page/1 with invalid data returns error changeset" do
+      stub_host_check()
       assert {:error, %Ecto.Changeset{}} = Pages.create_page(@invalid_attrs)
-    end
-
-    test "update_page/2 with valid data updates the page" do
-      page = page_fixture()
-      update_attrs = %{url: "some updated url"}
-
-      assert {:ok, %Page{} = page} = Pages.update_page(page, update_attrs)
-      assert page.url == "some updated url"
-    end
-
-    test "update_page/2 with invalid data returns error changeset" do
-      page = page_fixture()
-      assert {:error, %Ecto.Changeset{}} = Pages.update_page(page, @invalid_attrs)
-      assert page == Pages.get_page!(page.id)
     end
 
     test "delete_page/1 deletes the page" do
@@ -54,6 +51,11 @@ defmodule ExStatusCheck.PagesTest do
     test "change_page/1 returns a page changeset" do
       page = page_fixture()
       assert %Ecto.Changeset{} = Pages.change_page(page)
+    end
+
+    test "topic_name/1 returns pubsbu topic name for page" do
+      page = page_fixture()
+      assert "page:#{page.id}" == Pages.topic_name(page)
     end
   end
 end

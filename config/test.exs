@@ -10,7 +10,7 @@ config :ex_status_check, ExStatusCheck.Repo,
   pool_size: 5,
   pool: Ecto.Adapters.SQL.Sandbox
 
-config :ex_status_check, Oban, testing: :inline
+config :ex_status_check, Oban, testing: :manual
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

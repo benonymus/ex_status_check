@@ -55,7 +55,8 @@ defmodule ExStatusCheck.MixProject do
       {:nebulex, "~> 2.5"},
       {:decorator, "~> 1.4"},
       {:ex2ms, "~> 1.0"},
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:mimic, "~> 1.7", only: :test}
     ]
   end
 
