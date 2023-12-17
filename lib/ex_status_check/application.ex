@@ -5,7 +5,10 @@ defmodule ExStatusCheck.Application do
 
   @impl true
   def start(_type, _args) do
+    ExStatusCheck.Release.migrate()
+
     children = [
+      ExStatusCheckWeb.Telemetry,
       ExStatusCheck.Repo,
       {Ecto.Migrator,
        repos: Application.fetch_env!(:ex_status_check, :ecto_repos), skip: skip_migrations?()},

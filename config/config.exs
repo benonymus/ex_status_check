@@ -30,12 +30,15 @@ config :ex_status_check, Oban,
 
 config :ex_status_check, ExStatusCheck.Cache,
   gc_interval: :timer.hours(12),
-  # Max 150 mb of memory
-  allocated_memory: 150_000_000,
+  # Max 20 mb of memory - low on purpose for small vm
+  allocated_memory: 20_000_000,
   # GC min timeout: 10 sec
   gc_cleanup_min_timeout: :timer.seconds(10),
   # GC max timeout: 10 min
   gc_cleanup_max_timeout: :timer.minutes(10)
+
+# we don't need constant updates and saves some memory
+config :tzdata, :autoupdate, :disabled
 
 # Configures the endpoint
 config :ex_status_check, ExStatusCheckWeb.Endpoint,

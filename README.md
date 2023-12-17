@@ -4,7 +4,7 @@ Small website status checker made with Elixir, Phoenix LiveView, Oban and SQLite
 
 A functional test project to explore SQLite prompted by [`https://fly.io/blog/introducing-litefs/`](https://fly.io/blog/introducing-litefs/) and a failed job prospect.
 
-Deployment link:
+Deployment link: [`https://ex-status-check.fly.dev `](https://ex-status-check.fly.dev )
 
 ## Local development
 To start your Phoenix server:

@@ -19,7 +19,7 @@ defmodule ExStatusCheck.MixProject do
   def application do
     [
       mod: {ExStatusCheck.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon]
     ]
   end
 
@@ -36,10 +36,12 @@ defmodule ExStatusCheck.MixProject do
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.10"},
       {:ecto_sqlite3, ">= 0.0.0"},
+      {:ecto_sqlite3_extras, "~> 1.2.2"},
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 0.20.1"},
       {:floki, ">= 0.30.0", only: :test},
+      {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.2.0", runtime: Mix.env() == :dev},
       {:telemetry_metrics, "~> 0.6"},
@@ -56,7 +58,8 @@ defmodule ExStatusCheck.MixProject do
       {:decorator, "~> 1.4"},
       {:ex2ms, "~> 1.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:mimic, "~> 1.7", only: :test}
+      {:mimic, "~> 1.7", only: :test},
+      {:plug_health, "~> 0.1.2"}
     ]
   end
 

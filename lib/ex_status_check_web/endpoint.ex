@@ -32,6 +32,8 @@ defmodule ExStatusCheckWeb.Endpoint do
     plug Phoenix.Ecto.CheckRepoStatus, otp_app: :ex_status_check
   end
 
+  plug HealthCheckPlug, path: "/healthz", check_func: &ExStatusCheck.Utils.healthcheck(&1)
+
   plug Plug.RequestId
   plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
 

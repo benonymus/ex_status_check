@@ -1,0 +1,45 @@
+# fly.toml app configuration file generated for ex-status-check on 2023-12-17T10:05:36+07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "ex-status-check"
+primary_region = "ams"
+kill_signal = "SIGTERM"
+
+[build]
+
+[deploy]
+
+[mounts]
+  source="ex_status_check_db"
+  destination="/mnt/ex_status_check_db"
+
+[env]
+  PHX_HOST = "ex-status-check.fly.dev"
+  PORT = "8080"
+  DATABASE_PATH = "/mnt/ex_status_check_db/ex_status_check_db.db"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = false
+  min_machines_running = 1
+  processes = ["app"]
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 1000
+    soft_limit = 1000
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    timeout = "5s"
+    path = "/healthz"
+
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
