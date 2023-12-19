@@ -21,3 +21,4 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 - UI tweaks, show more numbers not just in the tooltips
 - Remove pages that have not been visited in a while
 - Rate limit page creation
+- The checks use UTC+0. On the UI the datetimes are parsed to the local time zone. This introduces a visual offset to the users. Improve this. 
