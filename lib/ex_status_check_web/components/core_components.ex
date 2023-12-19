@@ -416,7 +416,7 @@ defmodule ExStatusCheckWeb.CoreComponents do
 
     ~H"""
     <.tooltip
-      content={"#{format_date_time(@date, @timezone, @type)} - #{@success_count}/#{@fail_count} - #{@percentage}%"}
+      content={"#{ExStatusCheck.Utils.format_date_time(@date, @timezone, @type)} - #{@success_count}/#{@fail_count} - #{@percentage}%"}
       variant="simple"
       position={@tooltip_position}
     >
@@ -445,19 +445,6 @@ defmodule ExStatusCheckWeb.CoreComponents do
   defp next_type(:day), do: :hour
   defp next_type(:hour), do: :minute
   defp next_type(:minute), do: nil
-
-  # maybe localize these too and proper format depending on type
-  defp format_date_time(input, time_zone, type) do
-    {:ok, datetime, _} = DateTime.from_iso8601(input)
-
-    datetime
-    |> Timex.Timezone.convert(time_zone)
-    |> Timex.format!(datetime_formatter(type))
-  end
-
-  defp datetime_formatter(:day), do: "{YYYY}-{0M}-{D}"
-  defp datetime_formatter(:hour), do: "{YYYY}-{0M}-{D} {h24}:{m}"
-  defp datetime_formatter(:minute), do: "{YYYY}-{0M}-{D} {h24}:{m}"
 
   defp calculate_percentage(%{true: 0, false: 0}), do: 0
 
@@ -511,9 +498,9 @@ defmodule ExStatusCheckWeb.CoreComponents do
         <h1 class="text-lg font-semibold leading-8 text-zinc-800">
           <%= render_slot(@inner_block) %>
         </h1>
-        <p :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
+        <div :if={@subtitle != []} class="mt-2 text-sm leading-6 text-zinc-600">
           <%= render_slot(@subtitle) %>
-        </p>
+        </div>
       </div>
       <div class="flex-none"><%= render_slot(@actions) %></div>
     </header>

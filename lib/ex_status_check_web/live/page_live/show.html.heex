@@ -1,5 +1,14 @@
 <.header>
   <%= @page.url %>
+  <:subtitle :if={@connected?}>
+    <p>Time frame</p>
+    <p>
+      <%= "Local - #{Utils.format_date_time(@start_date_time_utc, @timezone, @type)} - #{Utils.format_date_time(@finish_date_time_utc, @timezone, @type)}" %>
+    </p>
+    <p>
+      <%= "UTC - #{Utils.format_date_time(@start_date_time_utc, "UTC", @type)} - #{Utils.format_date_time(@finish_date_time_utc, "UTC", @type)}" %>
+    </p>
+  </:subtitle>
 </.header>
 
 <.back navigate={back_button_path(@type, @page.slug, @datetime_string)}>

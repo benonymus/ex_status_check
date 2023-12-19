@@ -70,42 +70,47 @@ defmodule ExStatusCheck.Checks do
         interval,
         amount \\ nil
       ) do
+    start = start(interval, datetime, amount)
+    finish = finish(interval, datetime)
     {substr_length, padding} = substr_length_and_padding(interval)
 
     # this is faster than subqueries
-    Check
-    |> where(page_id: ^id)
-    |> where(
-      [c],
-      c.inserted_at >= ^start(interval, datetime, amount) and
-        c.inserted_at <= ^finish(interval, datetime)
-    )
-    |> group_by([c], [fragment("substr(?, 1, ?)", c.inserted_at, ^substr_length), c.success])
-    |> select(
-      [c],
-      %{
-        fragment("concat(substr(?, 1, ?), ?)", c.inserted_at, ^substr_length, ^padding) => %{
-          c.success => count(c.id)
+    checks =
+      Check
+      |> where(page_id: ^id)
+      |> where(
+        [c],
+        c.inserted_at >= ^start and
+          c.inserted_at <= ^finish
+      )
+      |> group_by([c], [fragment("substr(?, 1, ?)", c.inserted_at, ^substr_length), c.success])
+      |> select(
+        [c],
+        %{
+          fragment("concat(substr(?, 1, ?), ?)", c.inserted_at, ^substr_length, ^padding) => %{
+            c.success => count(c.id)
+          }
         }
-      }
-    )
-    |> Repo.all()
-    |> Enum.reduce(%{}, fn map, acc ->
-      Map.merge(acc, map, fn _k, v1, v2 ->
-        Map.merge(v1, v2)
+      )
+      |> Repo.all()
+      |> Enum.reduce(%{}, fn map, acc ->
+        Map.merge(acc, map, fn _k, v1, v2 ->
+          Map.merge(v1, v2)
+        end)
       end)
-    end)
-    |> Enum.sort_by(
-      fn {k, _} ->
-        {:ok, datetime, _} = DateTime.from_iso8601(k)
-        datetime
-      end,
-      {:desc, DateTime}
-    )
-    |> then(fn result ->
-      if length(result) > 0 and skip_last, do: tl(result), else: result
-    end)
-    |> Enum.reverse()
+      |> Enum.sort_by(
+        fn {k, _} ->
+          {:ok, datetime, _} = DateTime.from_iso8601(k)
+          datetime
+        end,
+        {:desc, DateTime}
+      )
+      |> then(fn result ->
+        if length(result) > 0 and skip_last, do: tl(result), else: result
+      end)
+      |> Enum.reverse()
+
+    {start, finish, checks}
   end
 
   defp cache_key(id, :day = interval, _datetime),

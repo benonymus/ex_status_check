@@ -53,12 +53,13 @@ defmodule ExStatusCheck.ChecksTest do
 
         ExStatusCheck.Cache.delete_all(nil)
 
-        result = Checks.get_results_for(page.id, DateTime.utc_now(), skip_last, interval, amount)
+        {_, _, checks} =
+          Checks.get_results_for(page.id, DateTime.utc_now(), skip_last, interval, amount)
 
         if skip_last do
-          assert [] == result
+          assert [] == checks
         else
-          assert [{_, %{false: 2, true: 1}}] = result
+          assert [{_, %{false: 2, true: 1}}] = checks
         end
       end
     end

@@ -1,7 +1,7 @@
 defmodule ExStatusCheckWeb.PageLive.Show do
   use ExStatusCheckWeb, :live_view
 
-  alias ExStatusCheck.{Checks, Pages}
+  alias ExStatusCheck.{Checks, Pages, Utils}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -19,7 +19,9 @@ defmodule ExStatusCheckWeb.PageLive.Show do
        checks: [],
        type: :day,
        datetime_string: nil,
-       skip_last: true
+       skip_last: true,
+       start_date_time_utc: nil,
+       finish_date_time_utc: nil
      )}
   end
 
@@ -55,14 +57,16 @@ defmodule ExStatusCheckWeb.PageLive.Show do
 
     skip_last = Date.compare(datetime, now) == :eq and datetime.hour == now.hour
 
-    checks =
+    {start_date_time_utc, finish_date_time_utc, checks} =
       Checks.get_results_for(socket.assigns.page.id, datetime, skip_last, :minute)
 
     assign(socket,
       type: :minute,
       datetime_string: datetime_string,
       checks: checks,
-      skip_last: skip_last
+      skip_last: skip_last,
+      start_date_time_utc: start_date_time_utc,
+      finish_date_time_utc: finish_date_time_utc
     )
   end
 
@@ -71,22 +75,31 @@ defmodule ExStatusCheckWeb.PageLive.Show do
 
     skip_last = Date.compare(datetime, Date.utc_today()) == :eq
 
-    checks =
+    {start_date_time_utc, finish_date_time_utc, checks} =
       Checks.get_results_for(socket.assigns.page.id, datetime, skip_last, :hour)
 
     assign(socket,
       type: :hour,
       datetime_string: datetime_string,
       checks: checks,
-      skip_last: skip_last
+      skip_last: skip_last,
+      start_date_time_utc: start_date_time_utc,
+      finish_date_time_utc: finish_date_time_utc
     )
   end
 
   defp assign_extras(socket, _) do
-    checks =
+    {start_date_time_utc, finish_date_time_utc, checks} =
       Checks.get_results_for(socket.assigns.page.id, DateTime.utc_now(), true, :day, -29)
 
-    assign(socket, type: :day, datetime_string: nil, checks: checks, skip_last: true)
+    assign(socket,
+      type: :day,
+      datetime_string: nil,
+      checks: checks,
+      skip_last: true,
+      start_date_time_utc: start_date_time_utc,
+      finish_date_time_utc: finish_date_time_utc
+    )
   end
 
   def back_button_text(:day), do: "Home"

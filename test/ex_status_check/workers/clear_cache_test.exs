@@ -2,8 +2,8 @@ defmodule ExStatusCheck.Workers.ClearCacheTest do
   use ExStatusCheck.DataCase
   use Oban.Testing, repo: ExStatusCheck.Repo, prefix: false
 
-  alias ExStatusCheck.Workers.ClearCache
   alias ExStatusCheck.Cache
+  alias ExStatusCheck.Workers.ClearCache
 
   test "ClearCache" do
     key = {nil, :day, nil, nil}
