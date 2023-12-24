@@ -13,16 +13,18 @@ defmodule ExStatusCheck.ChecksTest do
       {:ok, %{page: page}}
     end
 
-    test "create_check/1 with valid data creates a check", %{page: page} do
+    test "create_check!/1 with valid data creates a check", %{page: page} do
       valid_attrs = %{page_id: page.id, success: true}
 
-      assert {:ok, %Check{} = check} = Checks.create_check(valid_attrs)
+      assert %Check{} = check = Checks.create_check!(valid_attrs)
       assert check.page_id == page.id
       assert check.success == true
     end
 
-    test "create_check/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Checks.create_check(%{page_id: nil})
+    test "create_check!/1 with invalid data raises" do
+      assert_raise Ecto.InvalidChangesetError, fn ->
+        Checks.create_check!(%{page_id: nil})
+      end
     end
 
     for interval <- [:day, :hour, :minute] do

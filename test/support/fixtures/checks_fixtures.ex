@@ -7,9 +7,6 @@ defmodule ExStatusCheck.ChecksFixtures do
   @doc """
   Generate a check.
   """
-  def check_fixture(page_id, success) do
-    {:ok, check} = ExStatusCheck.Checks.create_check(%{page_id: page_id, success: success})
-
-    check
-  end
+  def check_fixture(page_id, success),
+    do: ExStatusCheck.Checks.create_check!(%{page_id: page_id, success: success})
 end

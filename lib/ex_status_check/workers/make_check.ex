@@ -8,7 +8,7 @@ defmodule ExStatusCheck.Workers.MakeCheck do
   alias ExStatusCheck.{Checks, Pages}
 
   @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"page_id" => page_id} = args}) do
+  def perform(%Oban.Job{args: %{"page_id" => page_id} = args, attempt: attempt}) do
     # we are safe here for retries thanks to uniqueness
     job = Oban.insert!(__MODULE__.new(args, schedule_in: 30))
 
@@ -17,26 +17,34 @@ defmodule ExStatusCheck.Workers.MakeCheck do
     # in case we lose the job id on the page for any reason
     with %Pages.Page{url: url} <- page,
          {:ok, _} <- Pages.update_page_with_oban_job_id(page, job.id),
-         {:ok, %Req.Response{status: status}} <-
-           Req.get(url, retry: false, connect_options: [timeout: 5000]),
-         {:ok, _} <-
-           Checks.create_check(%{page_id: page_id, success: status < 500}) do
-      Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, Pages.topic_name(page), :new_check)
-      Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, "homepage", {:new_check, page_id})
+         {:request, _, {:ok, %Req.Response{status: status}}} <-
+           {:request, attempt == 3, Req.get(url, retry: false, connect_options: [timeout: 5000])} do
+      result(page, status < 500)
       :ok
     else
       nil ->
         Oban.cancel_job(job)
         {:cancel, "page deleted"}
 
-      {:error, %Mint.TransportError{reason: :ehostunreach}} ->
+      {:request, true, {:error, %Mint.TransportError{reason: :ehostunreach}}} ->
         Pages.delete_page(page)
         Oban.cancel_job(job)
         {:cancel, "ehostunreach"}
 
+      {:request, _, _} ->
+        result(page, false)
+
       err ->
         err
     end
+  end
+
+  defp result(page, success) do
+    Checks.create_check!(%{page_id: page.id, success: success})
+
+    Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, Pages.topic_name(page), :new_check)
+    Phoenix.PubSub.broadcast(ExStatusCheck.PubSub, "homepage", {:new_check, page.id})
+    :ok
   end
 
   # constant backoff

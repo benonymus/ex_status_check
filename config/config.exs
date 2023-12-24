@@ -30,8 +30,8 @@ config :ex_status_check, Oban,
 
 config :ex_status_check, ExStatusCheck.Cache,
   gc_interval: :timer.hours(12),
-  # Max 20 mb of memory - low on purpose for small vm
-  allocated_memory: 20_000_000,
+  # Max 200 mb of memory
+  allocated_memory: 200_000_000,
   # GC min timeout: 10 sec
   gc_cleanup_min_timeout: :timer.seconds(10),
   # GC max timeout: 10 min

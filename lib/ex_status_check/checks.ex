@@ -9,25 +9,16 @@ defmodule ExStatusCheck.Checks do
   alias ExStatusCheck.Checks.Check
 
   @doc """
-  Creates a check.
-
-  ## Examples
-
-      iex> create_check(%{field: value})
-      {:ok, %Check{}}
-
-      iex> create_check(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
+  Creates a check or raises.
   """
   @decorate cache_evict(
               cache: Cache,
               keys: [{attrs.page_id, :day}, {attrs.page_id, :hour}, {attrs.page_id, :minute}]
             )
-  def create_check(attrs \\ %{}) do
+  def create_check!(attrs \\ %{}) do
     %Check{}
     |> Check.changeset(attrs)
-    |> Repo.insert()
+    |> Repo.insert!()
   end
 
   # helpers
