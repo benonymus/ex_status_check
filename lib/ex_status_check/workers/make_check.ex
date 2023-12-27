@@ -15,27 +15,33 @@ defmodule ExStatusCheck.Workers.MakeCheck do
     page = Pages.get_page(page_id)
     # while I am not too happy to do this here, this is the safest
     # in case we lose the job id on the page for any reason
-    with %Pages.Page{url: url} <- page,
+    with %Pages.Page{url: url} <- check_page(page, job),
          {:ok, _} <- Pages.update_page_with_oban_job_id(page, job.id),
-         {:request, _, {:ok, %Req.Response{status: status}}} <-
-           {:request, attempt == 3, Req.get(url, retry: false, connect_options: [timeout: 5000])} do
+         {:ok, %Req.Response{status: status}} <- make_request(url, attempt, page, job) do
       result(page, status < 500)
-      :ok
-    else
-      nil ->
-        Oban.cancel_job(job)
-        {:cancel, "page deleted"}
+    end
+  end
 
-      {:request, true, {:error, %Mint.TransportError{reason: :ehostunreach}}} ->
+  defp check_page(%Pages.Page{} = page, _job), do: page
+
+  defp check_page(_, job) do
+    Oban.cancel_job(job)
+    {:cancel, "page deleted"}
+  end
+
+  defp make_request(url, attempt, page, job) do
+    case {attempt == 3, Req.get(url, retry: false, connect_options: [timeout: 5000])} do
+      {_, {:ok, _} = res} ->
+        res
+
+      # on max attempt we cancel with this error, likely page is dead or url is wrong
+      {true, {:error, %Mint.TransportError{reason: :ehostunreach}}} ->
         Pages.delete_page(page)
         Oban.cancel_job(job)
         {:cancel, "ehostunreach"}
 
-      {:request, _, _} ->
+      {_, _} ->
         result(page, false)
-
-      err ->
-        err
     end
   end
 
